@@ -1,7 +1,7 @@
 name: shelf_router_macro
 description: Experimental support for shelf_router using macros
-version: 0.0.0-dev.1
-repository: https://github.com/eeqk/shelf_toolbox
+version: 0.0.0-dev.2
+repository: https://github.com/eEQK/shelf_router_macro
 topics: [server, shelf, macros]
 
 environment:
