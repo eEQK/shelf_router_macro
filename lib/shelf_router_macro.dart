@@ -3,7 +3,7 @@
 /// This library provides a set of macros that can be used
 /// to define [Router] routes.
 ///
-/// Example:
+/// **Example:**
 /// ```dart
 /// import 'package:data_class_macro/data_class_macro.dart';
 ///
@@ -26,6 +26,21 @@
 ///   (await (await HttpClient().get('localhost', 8080, '/eeqk')).close())
 ///       .transform(utf8.decoder)
 ///       .listen(print); // Hello, eeqk!
+/// }
+/// ```
+///
+/// It is also possible to define routes without specifying
+/// the [Request] or [Response] types. However, the only supported
+/// return type for now is [String].
+///
+/// **Example:**
+/// ```dart
+/// @Controller()
+/// class GreetingController {
+///   @Get('/<name>')
+///   String greetingByName(String name) {
+///     return 'Hello, $name!';
+///   }
 /// }
 /// ```
 library data_class_macro;

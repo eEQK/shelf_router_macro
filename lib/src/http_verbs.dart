@@ -170,6 +170,7 @@ Future<void> _buildHttpVerbDeclaration(
       route: route,
       builder: builder,
       methodName: method.identifier.name,
+      methodReturnType: method.returnType,
       parameters: method.positionalParameters
           .followedBy(method.namedParameters)
           .toList(),

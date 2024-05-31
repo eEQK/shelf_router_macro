@@ -25,6 +25,11 @@ class Fixtures {
 
   static final fooIdentifier = identifier(name: 'foo');
 
+  static final responseType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: identifier(name: 'Response'),
+      isNullable: false,
+      typeArguments: const []);
   static final requestType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
       identifier: identifier(name: 'Request'),

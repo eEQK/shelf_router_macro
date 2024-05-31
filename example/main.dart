@@ -14,8 +14,8 @@ class GreetingController {
   }
 
   @Get('/<name>')
-  Response greetingByName(Request request, String name) {
-    return Response.ok('Hello, $name!');
+  String greetingByName(String name) {
+    return 'Hello, $name!';
   }
 }
 

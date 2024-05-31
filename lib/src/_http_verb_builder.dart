@@ -3,6 +3,9 @@ import 'package:macros/macros.dart';
 import 'package:meta/meta.dart';
 import 'package:shelf_router/src/router_entry.dart' show RouterEntry;
 import 'package:shelf_router_macro/src/_common.dart';
+import 'package:shelf_router_macro/src/_utils.dart';
+
+part '_resolver.dart';
 
 /// Wrapper around [FormalParameterDeclaration] to store the type
 ///
@@ -29,14 +32,13 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
   required String verb,
   required String route,
   required String methodName,
+  required TypeAnnotation methodReturnType,
   required List<FormalParameterDeclaration> parameters,
   required MemberDeclarationBuilder builder,
 }) async {
-  // ignore: deprecated_member_use
-  final requestIdentifier = await builder.resolveIdentifier(
-      Uri.parse('package:shelf/src/request.dart'), 'Request');
-  final shelfRequestTypeDeclaration =
-      (await builder.typeDeclarationOf(requestIdentifier)) as ClassDeclaration;
+  final resolver = _Resolver(builder);
+  final requestTypeDeclaration = await resolver.getRequestDeclaration();
+  final responseTypeDeclaration = await resolver.getResponseDeclaration();
 
   final routeParameters = RouterEntry(verb, route, () => null).params;
   final methodParameters = await _processParameters(parameters, builder);
@@ -44,7 +46,7 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
   final parameterDiff = _calculateParameterDifference(
     methodParameters: methodParameters
         // skip [Request] because it is shelf specific and cannot be used in route
-        .whereNot((e) => e.typeDeclaration == shelfRequestTypeDeclaration),
+        .whereNot((e) => e.typeDeclaration == requestTypeDeclaration),
     routeParameters: routeParameters,
   );
   if (parameterDiff.isNotEmpty) {
@@ -55,40 +57,55 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
     );
   }
 
-  final shelfRequestParameters = methodParameters
-      .where((e) => e.typeDeclaration == shelfRequestTypeDeclaration);
-  if (shelfRequestParameters.length != 1) {
-    throw ArgumentError.value(
-      parameters
-          .map((e) =>
-              '${(e.type as NamedTypeAnnotation).identifier.name} ${e.name}')
-          .join(', '),
-      'parameters',
-      'method must have exactly one parameter of type Request',
-    );
-  }
-
   final optionalParameters =
       methodParameters.whereNot((e) => e.value.isRequired).toList();
   if (optionalParameters.isNotEmpty) {
     throw ArgumentError.value(
       optionalParameters,
       'parameters',
-      'has to be required (no optional parameters allowed)',
+      'have to be required (no optional parameters allowed)',
     );
   }
 
-  final lambdaParams = methodParameters
-      .expandIndexed((i, e) => [
-            i != 0 ? ', ' : null,
-            e.type.identifier,
-            ' ',
-            e.value.name,
-          ])
-      .whereNotNull();
-  final methodParams = methodParameters
-      .map((e) => e.isNamed ? '${e.name}: ${e.name}' : e.name)
-      .join(', ');
+  final (lambdaParams, methodParams) = _computeParameters(
+    methodParameters: methodParameters,
+    shelfRequestTypeDeclaration: requestTypeDeclaration,
+  );
+
+  if (methodReturnType is! NamedTypeAnnotation) {
+    throw ArgumentError.value(
+      methodReturnType,
+      'methodReturnType',
+      'method must return a named type (no function or record type allowed)',
+    );
+  }
+  final returnType =
+      await builder.typeDeclarationOf(methodReturnType.identifier);
+  if (returnType is! ClassDeclaration) {
+    throw ArgumentError.value(
+      methodReturnType,
+      'methodReturnType',
+      'method return type has to be a class declaration',
+    );
+  }
+
+  var callback = <Object>['$methodName(', ...methodParams, ')'];
+
+  final returnsResponse = returnType == responseTypeDeclaration;
+  if (!returnsResponse) {
+    if (returnType == await resolver.getStringDeclaration()) {
+      callback = callback.surroundWith(
+        prefix: [responseTypeDeclaration.identifier, '.ok('],
+        postfix: [')'],
+      ).toList();
+    } else {
+      throw ArgumentError.value(
+        parameters,
+        'parameters',
+        'return type must be a Response or String',
+      );
+    }
+  }
 
   return DeclarationCode.fromParts(
     [
@@ -96,11 +113,71 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
         ${Common.generatedPrefix}$methodName() {
         router.add('$verb', '$route', (''',
       ...lambdaParams,
-      ''') => $methodName($methodParams));
+      ''') => ''',
+      ...callback,
+      ''');
         }
       ''',
     ],
   );
+}
+
+(List<Object>, List<Object>) _computeParameters({
+  required List<_Parameter> methodParameters,
+  required ClassDeclaration shelfRequestTypeDeclaration,
+}) {
+  final shelfRequestParameter = _findShelfRequestParameter(
+    methodParameters: methodParameters,
+    shelfRequestTypeDeclaration: shelfRequestTypeDeclaration,
+  );
+
+  // this will fail if library consumer adds a `_` parameter,
+  // however once wildcard variables land, this will not be an issue
+  // because it will be not binding
+  //
+  // todo: once wildcard variables are out, remove this comment
+  // https://github.com/dart-lang/language/issues/3712
+  final requestParamName = shelfRequestParameter?.name ?? '_';
+  final lambdaParams = <Object?>[
+    shelfRequestTypeDeclaration.identifier,
+    ' ',
+    requestParamName,
+  ]
+      .followedBy(methodParameters
+          .whereNot((e) => e == shelfRequestParameter)
+          .expand((e) => [
+                ', ',
+                e.type.identifier,
+                ' ',
+                e.value.name,
+              ]))
+      .whereNotNull()
+      .toList();
+  final methodParams = methodParameters
+      .map((e) => e.isNamed ? '${e.name}: ${e.name}' : e.name)
+      .separatedBy(', ')
+      .toList();
+
+  return (lambdaParams, methodParams);
+}
+
+_Parameter? _findShelfRequestParameter({
+  required List<_Parameter> methodParameters,
+  required ClassDeclaration shelfRequestTypeDeclaration,
+}) {
+  final shelfRequestParameters = methodParameters
+      .where((e) => e.typeDeclaration == shelfRequestTypeDeclaration);
+  if (shelfRequestParameters.length > 1) {
+    throw ArgumentError.value(
+      methodParameters
+          .map((e) => '${e.type.identifier.name} ${e.name}')
+          .join(', '),
+      'parameters',
+      'method must have at most one parameter of type Request',
+    );
+  }
+
+  return shelfRequestParameters.firstOrNull;
 }
 
 Set<String> _calculateParameterDifference({

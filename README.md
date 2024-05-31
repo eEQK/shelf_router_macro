@@ -27,6 +27,13 @@ class GreetingController {
   Response greetingByName(Request request, String name) {
     return Response.ok('Hello, $name!');
   }
+
+  // you can also omit Request/Response
+  // WARNING: only String return type is supported for now
+  @Get('/wave')
+  String greetingByName() {
+    return '_o/';
+  }
 }
 
 void main() async {
