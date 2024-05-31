@@ -4,7 +4,8 @@ import 'package:macros/macros.dart';
 // needs to be included, otherwise macro fails
 // ignore: unused_import
 import 'package:shelf_router/shelf_router.dart';
-import 'package:shelf_router_macro/src/_http_verb_builder.dart';
+
+import '_common.dart';
 
 /// {@template Controller}
 /// A macro that marks class as a controller.
@@ -24,8 +25,8 @@ import 'package:shelf_router_macro/src/_http_verb_builder.dart';
 ///
 /// See also:
 ///
-///  * [Get], [Post], [Put], [Delete], [Patch], [Connect] [Options], [Trace] 
-///     - which register routes
+///  * [Get], [Post], [Put], [Delete], [Patch], [Connect] [Options], [Trace]
+///    which register routes
 /// {@endtemplate}
 macro class Controller implements ClassDeclarationsMacro {
   /// {@macro Controller}
@@ -36,7 +37,7 @@ macro class Controller implements ClassDeclarationsMacro {
       ClassDeclaration clazz, MemberDeclarationBuilder builder) async {
     final methods = await builder.methodsOf(clazz);
     final generatedMethods = methods
-        .where((e) => e.identifier.name.startsWith(generatedPrefix))
+        .where((e) => e.identifier.name.startsWith(Common.generatedPrefix))
         .toList();
 
     builder.declareInLibrary(

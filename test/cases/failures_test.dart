@@ -12,6 +12,30 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(Diagnostic(DiagnosticMessage(''), Severity.info));
+    registerFallbackValue(Fixtures.identifier(name: ''));
+    registerFallbackValue(Uri.parse(''));
+    registerFallbackValue(DeclarationCode.fromString(''));
+  });
+  setUp(() {
+    when(() => builderMock.report(any())).thenReturn(null);
+    when(() => builderMock.declareInType(any())).thenReturn(null);
+
+    when(() =>
+            builderMock.resolveIdentifier(any(), any(that: equals('Request'))))
+        .thenAnswer((_) async => Fixtures.requestType.identifier);
+
+    when(() => builderMock.typeDeclarationOf(any(
+          that: isA<Identifier>().having((e) => e.name, 'name', 'String'),
+        ))).thenAnswer((_) async => Fixtures.clazz(
+          identifier: Fixtures.stringType.identifier,
+          library: Fixtures.dartCoreLibrary,
+        ));
+    when(() => builderMock.typeDeclarationOf(any(
+          that: isA<Identifier>().having((e) => e.name, 'name', 'Request'),
+        ))).thenAnswer((_) async => Fixtures.clazz(
+          identifier: Fixtures.requestType.identifier,
+          library: Fixtures.shelfLibrary,
+        ));
   });
   tearDown(() {
     reset(builderMock);
@@ -20,8 +44,8 @@ void main() {
   final isErrorDiagnostic =
       isA<Diagnostic>().having((d) => d.severity, 'severity', Severity.error);
 
-  test('fails when no param of type Request is present', () {
-    Get('/').buildDeclarationsForMethod(
+  test('fails when no param of type Request is present', () async {
+    await Get('/').buildDeclarationsForMethod(
       Fixtures.method(/* void test() {} */),
       builderMock,
     );
@@ -29,8 +53,8 @@ void main() {
     verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
   });
 
-  test('fails when multiple params of type Request are present', () {
-    Get('/').buildDeclarationsForMethod(
+  test('fails when multiple params of type Request are present', () async {
+    await Get('/').buildDeclarationsForMethod(
       Fixtures.method(
         /* void test(Request r1, Request r2) {} */
         positionalParameters: [
@@ -50,8 +74,8 @@ void main() {
     verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
   });
 
-  test('fails when route param is not used', () {
-    Get('/<foo>').buildDeclarationsForMethod(
+  test('fails when route param is not used', () async {
+    await Get('/<foo>').buildDeclarationsForMethod(
       Fixtures.method(
         /* void test(Request r) {} */
         positionalParameters: [Fixtures.requestParam],
@@ -62,8 +86,8 @@ void main() {
     verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
   });
 
-  test('fails when method param does not exist in route', () {
-    Get('/').buildDeclarationsForMethod(
+  test('fails when method param does not exist in route', () async {
+    await Get('/').buildDeclarationsForMethod(
       Fixtures.method(
         /* void test(Request r, String foo) {} */
         positionalParameters: [
@@ -77,8 +101,8 @@ void main() {
     verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
   });
 
-  test('fails when route param declared in method as optional', () {
-    Get('/').buildDeclarationsForMethod(
+  test('fails when route param declared in method as optional', () async {
+    await Get('/').buildDeclarationsForMethod(
       Fixtures.method(
         /* void test(Request r, {String? foo}) {} */
         positionalParameters: [

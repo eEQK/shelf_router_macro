@@ -1,3 +1,4 @@
+import 'package:macros/macros.dart';
 import 'package:macros/src/executor/introspection_impls.dart';
 import 'package:macros/src/executor/remote_instance.dart';
 
@@ -8,6 +9,12 @@ class Fixtures {
     languageVersion: LanguageVersionImpl(3, 0),
     metadata: [],
     uri: Uri.parse('package:foo/bar.dart'),
+  );
+  static final dartCoreLibrary = LibraryImpl(
+    id: RemoteInstance.uniqueId,
+    languageVersion: LanguageVersionImpl(3, 0),
+    metadata: [],
+    uri: Uri.parse('dart:core'),
   );
   static final shelfLibrary = LibraryImpl(
     id: RemoteInstance.uniqueId,
@@ -49,10 +56,39 @@ class Fixtures {
       isNullable: false,
       typeArguments: const []);
 
-  static identifier({
+  static IdentifierImpl identifier({
     required String name,
   }) =>
-      IdentifierImpl(id: RemoteInstance.uniqueId, name: name);
+      TestIdentifierImpl(id: RemoteInstance.uniqueId, name: name);
+
+  /// Returns class declaration with sane defaults
+  ///
+  /// By default represents the following class:
+  /// ```dart
+  /// class Test {
+  /// }
+  /// ```
+  static ClassDeclaration clazz({
+    IdentifierImpl? identifier,
+    LibraryImpl? library,
+  }) =>
+      ClassDeclarationImpl(
+        id: RemoteInstance.uniqueId,
+        identifier: identifier ?? Fixtures.identifier(name: 'Test'),
+        library: library ?? Fixtures.library,
+        metadata: [],
+        typeParameters: [],
+        interfaces: [],
+        mixins: [],
+        superclass: null,
+        hasExternal: false,
+        hasBase: false,
+        hasFinal: false,
+        hasMixin: false,
+        hasSealed: false,
+        hasAbstract: false,
+        hasInterface: false,
+      );
 
   /// Returns method declaration with sane defaults
   ///
@@ -62,7 +98,7 @@ class Fixtures {
   ///   void test() {}
   /// }
   /// ```
-  static method({
+  static MethodDeclarationImpl method({
     IdentifierImpl? identifier,
     NamedTypeAnnotationImpl? returnType,
     List<FormalParameterDeclarationImpl> namedParameters = const [],
@@ -92,7 +128,7 @@ class Fixtures {
   /// ```dart
   /// String foo
   /// ```
-  static parameter({
+  static FormalParameterDeclarationImpl parameter({
     IdentifierImpl? identifier,
     NamedTypeAnnotationImpl? type,
     bool isNamed = false,
@@ -107,4 +143,14 @@ class Fixtures {
         isNamed: isNamed,
         isRequired: isRequired,
       );
+}
+
+/// custom class that adds [toString] for easier debugging
+///
+/// this way we can see which identifier is being requested in mocktail
+class TestIdentifierImpl extends IdentifierImpl {
+  TestIdentifierImpl({required super.id, required super.name});
+
+  @override
+  String toString() => 'IdentifierImpl(id: $id, name: $name)';
 }

@@ -41,8 +41,8 @@ macro class Get implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "GET", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "GET", route);
   }
 }
 
@@ -55,8 +55,8 @@ macro class Post implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "POST", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "POST", route);
   }
 }
 
@@ -69,8 +69,8 @@ macro class Put implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "PUT", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "PUT", route);
   }
 }
 
@@ -83,8 +83,8 @@ macro class Patch implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "PATCH", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "PATCH", route);
   }
 }
 
@@ -97,8 +97,8 @@ macro class Delete implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "DELETE", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "DELETE", route);
   }
 }
 
@@ -111,8 +111,8 @@ macro class Head implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "HEAD", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "HEAD", route);
   }
 }
 
@@ -125,8 +125,8 @@ macro class Options implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "OPTIONS", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "OPTIONS", route);
   }
 }
 
@@ -139,8 +139,8 @@ macro class Connect implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "CONNECT", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "CONNECT", route);
   }
 }
 
@@ -153,12 +153,12 @@ macro class Trace implements MethodDeclarationsMacro {
   final String route;
 
   @override
-  buildDeclarationsForMethod(method, builder) {
-    _buildHttpVerbDeclaration(method, builder, "TRACE", route);
+  Future<void> buildDeclarationsForMethod(method, builder) async {
+    await _buildHttpVerbDeclaration(method, builder, "TRACE", route);
   }
 }
 
-void _buildHttpVerbDeclaration(
+Future<void> _buildHttpVerbDeclaration(
   MethodDeclaration method,
   MemberDeclarationBuilder builder,
   String verb,
@@ -168,6 +168,7 @@ void _buildHttpVerbDeclaration(
     final declaration = await buildHttpVerbDeclaration(
       verb: verb,
       route: route,
+      builder: builder,
       methodName: method.identifier.name,
       parameters: method.positionalParameters
           .followedBy(method.namedParameters)
