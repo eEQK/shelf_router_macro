@@ -31,7 +31,7 @@ class GreetingController {
   // you can also omit Request/Response
   // WARNING: only String return type is supported for now
   @Get('/wave')
-  String greetingByName() {
+  String wave() {
     return '_o/';
   }
 }
