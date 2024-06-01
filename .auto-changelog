@@ -1,0 +1,5 @@
+{
+  "commitLimit": false,
+  "ignoreCommitPattern": "release:",
+  "breakingPattern": "BREAKING CHANGE:"
+}
