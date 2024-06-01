@@ -4,10 +4,10 @@ toggle_macro() {
   local action="$1"
   case "$action" in
     "on")
-      find lib/ -type f -exec sed -i 's/\/\*macro\*\/ class/macro class/g' {} \;
+      find lib/ -type f -exec sed -i '' -E 's/\/\*macro\*\/ class/macro class/g' {} \;
       ;;
     "off")
-      find lib/ -type f -exec sed -i 's/macro class/\/\*macro\*\/ class/g' {} \;
+      find lib/ -type f -exec sed -i '' -E 's/macro class/\/\*macro\*\/ class/g' {} \;
       ;;
     *)
       echo "Invalid argument. Usage: $0 (on|off)"
