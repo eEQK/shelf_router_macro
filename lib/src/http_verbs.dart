@@ -1,4 +1,6 @@
 import 'package:macros/macros.dart';
+import 'package:shelf/shelf.dart';
+import 'package:shelf_router_macro/shelf_router_macro.dart';
 import 'package:shelf_router_macro/src/_http_verb_builder.dart';
 
 /// {@template HttpVerb}
@@ -8,13 +10,18 @@ import 'package:shelf_router_macro/src/_http_verb_builder.dart';
 /// Requirements:
 /// - method must be inside a class annotated with [Controller]
 /// - method can't have optional parameters
-/// - must return Response and accept a Request
+/// - can optionally return [Response] and accept a [Request]
+/// - instead of [Response] you can also use following types:
+///     - [String]
 ///
 /// ```dart
 /// @Controller()
 /// class MyController {
 ///   @Get('/hello')
 ///   Response hello(Request r) => Response.ok('Hello');
+///
+///   @Get('/wave')
+///   String wave() => '_o/';
 /// }
 /// ```
 ///
