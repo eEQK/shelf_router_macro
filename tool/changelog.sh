@@ -1,11 +1,12 @@
 #!/bin/bash
 
-auto-changelog -V > /dev/null || npm install -g auto-changelog
+bun --version > /dev/null || { echo "bun not found"; exit 1; }
+
 latest_version=$(awk '/version/ { print $2 }' pubspec.yaml)
 
 changelog() {
   local action="$1"
-  local cmd="auto-changelog -v $latest_version"
+  local cmd="bunx auto-changelog -v $latest_version"
   case "$action" in
     "amend")
       read -p "This will amend last commit. Are you sure? [y/n]: " -n 1 -r
@@ -15,7 +16,6 @@ changelog() {
         git add CHANGELOG.md
         git commit --amend --no-edit
 
-        git tag -d $latest_version
         git tag $latest_version
       else
         exit 0
