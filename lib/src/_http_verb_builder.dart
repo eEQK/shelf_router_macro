@@ -1,6 +1,9 @@
 import 'package:collection/collection.dart';
+// ignore: implementation_imports
+import 'package:macros/src/executor/introspection_impls.dart';
 import 'package:macros/macros.dart';
 import 'package:meta/meta.dart';
+// ignore: implementation_imports
 import 'package:shelf_router/src/router_entry.dart' show RouterEntry;
 import 'package:shelf_router_macro/src/_common.dart';
 import 'package:shelf_router_macro/src/_utils.dart';
@@ -91,19 +94,45 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
 
   var callback = <Object>['$methodName(', ...methodParams, ')'];
 
-  final returnsResponse = returnType == responseTypeDeclaration;
-  if (!returnsResponse) {
-    if (returnType == await resolver.getStringDeclaration()) {
-      callback = callback.surroundWith(
-        prefix: [responseTypeDeclaration.identifier, '.ok('],
-        postfix: [')'],
-      ).toList();
+  final returnsFuture = returnType == await resolver.getFutureDeclaration();
+  if (returnsFuture) {
+    // method is async
+
+    final futureResultIdentifier =
+        (methodReturnType.typeArguments.first as NamedTypeAnnotationImpl)
+            .identifier;
+    final futureResultClass =
+        await resolver._resolveClass(futureResultIdentifier);
+
+    if (futureResultClass == responseTypeDeclaration) {
+      // pass
+    } else if (futureResultClass == await resolver.getStringDeclaration()) {
+      callback = callback.followedBy(
+          ['.then(', responseTypeDeclaration.identifier, '.ok)']).toList();
     } else {
       throw ArgumentError.value(
-        parameters,
-        'parameters',
-        'return type must be a Response or String',
+        methodReturnType,
+        'methodReturnType',
+        'future type parameter must be a Response or String',
       );
+    }
+  } else {
+    // method is sync
+
+    final returnsResponse = returnType == responseTypeDeclaration;
+    if (!returnsResponse) {
+      if (returnType == await resolver.getStringDeclaration()) {
+        callback = callback.surroundWith(
+          prefix: [responseTypeDeclaration.identifier, '.ok('],
+          postfix: [')'],
+        ).toList();
+      } else {
+        throw ArgumentError.value(
+          parameters,
+          'parameters',
+          'return type must be a Response or String',
+        );
+      }
     }
   }
 

@@ -23,8 +23,9 @@ class _OkMatcher extends AsyncMatcher {
   @override
   dynamic matchAsync(dynamic item) {
     if (item is! HttpClientResponse) return 'is not a HttpClientResponse';
-    if (item.statusCode != 200)
+    if (item.statusCode != 200) {
       return 'did not return 200 OK (was ${item.statusCode} ${item.reasonPhrase})';
+    }
 
     return Future(
       () async {

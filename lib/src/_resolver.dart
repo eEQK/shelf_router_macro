@@ -35,6 +35,15 @@ class _Resolver {
         'String',
       );
 
+  Future<ClassDeclaration> getFutureDeclaration() async =>
+      _resolveClass(await _getFutureIdentifier());
+  Future<Identifier> _getFutureIdentifier() =>
+      // ignore: deprecated_member_use
+      _introspector.resolveIdentifier(
+        Uri.parse('dart:async'),
+        'Future',
+      );
+
   Future<ClassDeclaration> _resolveClass(
     Identifier identifier,
   ) async =>

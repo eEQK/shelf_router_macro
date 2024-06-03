@@ -11,6 +11,7 @@ using [macros](https://dart.dev/language/macros).
 
 * ✨ Route declarations
 * ✨ Route parameters
+* ✨ Async routes
 * ✨ Lightweight - no additional dependencies beyond `shelf_router`
 * 🖊️  _In Progress_ Intuitive - custom return types
 * 🖊️  _In Progress_ Minimalistic - no need to specify `Request`/`Response`, just return response
@@ -28,10 +29,9 @@ class GreetingController {
     return Response.ok('Hello, $name!');
   }
 
-  // you can also omit Request/Response
-  // WARNING: only String return type is supported for now
   @Get('/wave')
-  String wave() {
+  Future<String> wave() async {
+    await Future.delayed(const Duration(seconds: 1));
     return '_o/';
   }
 }

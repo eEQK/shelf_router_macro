@@ -17,17 +17,26 @@ class GreetingController {
   String greetingByName(String name) {
     return 'Hello, $name!';
   }
+
+  @Get('/async/wave')
+  Future<String> asyncWave() async {
+    await Future.delayed(const Duration(seconds: 1));
+    return r'\o_';
+  }
 }
+
+const port = 8080;
 
 void main() async {
   final controller = GreetingController();
   unawaited(
-    serve(controller.router, 'localhost', 8080),
+    serve(controller.router, 'localhost', port),
   );
 
   print('🔍 Testing...\n');
-  await HttpClient().get('localhost', 8080, '/').sendAndLog();
-  await HttpClient().get('localhost', 8080, '/eeqk').sendAndLog();
+  await HttpClient().get('localhost', port, '/').sendAndLog();
+  await HttpClient().get('localhost', port, '/eeqk').sendAndLog();
+  await HttpClient().get('localhost', port, '/async/wave').sendAndLog();
 
   print('\n');
   print('✅ Server is running at http://localhost:8080/');

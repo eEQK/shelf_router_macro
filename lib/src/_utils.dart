@@ -29,11 +29,11 @@ extension IterableEx<T> on Iterable<T> {
   /// print(list); // ['pre', 'foo', 'bar', 'post']
   /// ```
   Iterable<T> surroundWith({
-    required Iterable<T> prefix,
-    required Iterable<T> postfix,
+    Iterable<T>? prefix,
+    Iterable<T>? postfix,
   }) sync* {
-    yield* prefix;
+    if (prefix != null) yield* prefix;
     yield* this;
-    yield* postfix;
+    if (postfix != null) yield* postfix;
   }
 }
