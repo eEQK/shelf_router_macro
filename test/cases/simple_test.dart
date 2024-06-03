@@ -38,6 +38,11 @@ class _Controller {
   Response named(Request request, {required String name}) {
     return Response.ok('$name named');
   }
+
+  @Get('/request/<name>')
+  Response paramOrder(String name, Request request) {
+    return Response.ok('order ok $name');
+  }
 }
 
 void main() {
@@ -76,5 +81,10 @@ void main() {
   test('registers route with a route param and named arg', () async {
     final response = await get(port, '/route/named/eeqk');
     expect(response, ok('eeqk named'));
+  });
+
+  test('registers route when Request is not a first parameter', () async {
+    final response = await get(port, '/request/test');
+    expect(response, ok('order ok test'));
   });
 }
