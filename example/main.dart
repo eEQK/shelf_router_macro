@@ -25,21 +25,22 @@ class GreetingController {
   }
 }
 
+const host = 'localhost';
 const port = 8080;
 
 void main() async {
   final controller = GreetingController();
   unawaited(
-    serve(controller.router, 'localhost', port),
+    serve(controller.router, host, port),
   );
 
   print('🔍 Testing...\n');
-  await HttpClient().get('localhost', port, '/').sendAndLog();
-  await HttpClient().get('localhost', port, '/eeqk').sendAndLog();
-  await HttpClient().get('localhost', port, '/async/wave').sendAndLog();
+  await HttpClient().get(host, port, '/').sendAndLog();
+  await HttpClient().get(host, port, '/eeqk').sendAndLog();
+  await HttpClient().get(host, port, '/async/wave').sendAndLog();
 
   print('\n');
-  print('✅ Server is running at http://localhost:8080/');
+  print('✅ Server is running at http://$host:$port/');
 }
 
 extension SendRequestExt on Future<HttpClientRequest> {
