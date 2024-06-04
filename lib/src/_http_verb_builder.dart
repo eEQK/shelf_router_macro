@@ -1,3 +1,6 @@
+// ignore: unused_import
+import 'dart:convert';
+
 import 'package:collection/collection.dart';
 // ignore: implementation_imports
 import 'package:macros/src/executor/introspection_impls.dart';
@@ -97,15 +100,23 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
   final returnsFuture = returnType == await resolver.getFutureDeclaration();
   if (returnsFuture) {
     // method is async
-
     final futureResultIdentifier =
         (methodReturnType.typeArguments.first as NamedTypeAnnotationImpl)
             .identifier;
     final futureResultClass =
-        await resolver._resolveClass(futureResultIdentifier);
+        await resolver.resolveClassWith(futureResultIdentifier);
+    final futureResultMethods = await builder.methodsOf(futureResultClass);
 
     if (futureResultClass == responseTypeDeclaration) {
-      // pass
+      // do nothing, since the method returns a Future<Response>,
+      // which is a valid return type by itself
+    } else if (futureResultMethods.any((e) => e.identifier.name == 'toJson')) {
+      callback = callback.followedBy([
+        '.then((value) => const ',
+        (await resolver.getJsonCodecDeclaration()).identifier,
+        '().encode(value.toJson()))',
+      ]).followedBy(
+          ['.then(', responseTypeDeclaration.identifier, '.ok)']).toList();
     } else if (futureResultClass == await resolver.getStringDeclaration()) {
       callback = callback.followedBy(
           ['.then(', responseTypeDeclaration.identifier, '.ok)']).toList();
@@ -113,15 +124,30 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
       throw ArgumentError.value(
         methodReturnType,
         'methodReturnType',
-        'future type parameter must be a Response or String',
+        'future type parameter must be a Response, String or have a toJson method',
       );
     }
   } else {
     // method is sync
-
     final returnsResponse = returnType == responseTypeDeclaration;
+    final returnTypeMethods = await builder.methodsOf(returnType);
+
     if (!returnsResponse) {
-      if (returnType == await resolver.getStringDeclaration()) {
+      if (returnTypeMethods.any((e) => e.identifier.name == 'toJson')) {
+        callback = callback.followedBy(
+          ['.toJson()'],
+        ).surroundWith(
+          prefix: [
+            'const ',
+            (await resolver.getJsonCodecDeclaration()).identifier,
+            '().encode('
+          ],
+          postfix: [')'],
+        ).surroundWith(
+          prefix: [responseTypeDeclaration.identifier, '.ok('],
+          postfix: [')'],
+        ).toList();
+      } else if (returnType == await resolver.getStringDeclaration()) {
         callback = callback.surroundWith(
           prefix: [responseTypeDeclaration.identifier, '.ok('],
           postfix: [')'],
@@ -130,7 +156,7 @@ Future<DeclarationCode> buildHttpVerbDeclaration({
         throw ArgumentError.value(
           parameters,
           'parameters',
-          'return type must be a Response or String',
+          'return type must be a Response, String or have a toJson method',
         );
       }
     }

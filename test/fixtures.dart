@@ -60,6 +60,11 @@ class Fixtures {
       identifier: identifier(name: 'void'),
       isNullable: false,
       typeArguments: const []);
+  static final fooType = NamedTypeAnnotationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: identifier(name: 'Foo'),
+      isNullable: false,
+      typeArguments: const []);
 
   static IdentifierImpl identifier({
     required String name,

@@ -29,20 +29,8 @@
 /// }
 /// ```
 ///
-/// It is also possible to define routes without specifying
-/// the [Request] or [Response] types. However, the only supported
-/// return type for now is [String].
-///
-/// **Example:**
-/// ```dart
-/// @Controller()
-/// class GreetingController {
-///   @Get('/<name>')
-///   String greetingByName(String name) {
-///     return 'Hello, $name!';
-///   }
-/// }
-/// ```
+/// See also:
+/// * [README.md](https://github.com/eEQK/shelf_router_macro) for an up-to-date documentation
 library data_class_macro;
 
 export 'src/controller.dart';

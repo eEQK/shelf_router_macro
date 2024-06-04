@@ -18,10 +18,10 @@ class GreetingController {
     return 'Hello, $name!';
   }
 
-  @Get('/async/wave')
+  @Get('/wave')
   Future<String> asyncWave() async {
     await Future.delayed(const Duration(seconds: 1));
-    return r'\o_';
+    return '_o/';
   }
 }
 
@@ -37,7 +37,7 @@ void main() async {
   print('🔍 Testing...\n');
   await HttpClient().get(host, port, '/').sendAndLog();
   await HttpClient().get(host, port, '/eeqk').sendAndLog();
-  await HttpClient().get(host, port, '/async/wave').sendAndLog();
+  await HttpClient().get(host, port, '/wave').sendAndLog();
 
   print('\n');
   print('✅ Server is running at http://$host:$port/');

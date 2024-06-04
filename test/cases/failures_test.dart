@@ -119,4 +119,31 @@ void main() {
 
     verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
   });
+
+  test('fails when returning an instance that does not have toJson', () async {
+    when(() => builderMock.typeDeclarationOf(any(
+          that: isA<Identifier>().having((e) => e.name, 'name', 'Foo'),
+        ))).thenAnswer(
+      (_) async => Fixtures.clazz(identifier: Fixtures.fooType.identifier),
+    );
+
+    await Get('/').buildDeclarationsForMethod(
+      Fixtures.method(
+        /* 
+          class Foo {}
+          void test(Foo foo) {} 
+        */
+        positionalParameters: [
+          Fixtures.parameter(
+            type: Fixtures.fooType,
+            isNamed: false,
+            isRequired: false,
+          ),
+        ],
+      ),
+      builderMock,
+    );
+
+    verify(() => builderMock.report(any(that: isErrorDiagnostic))).called(1);
+  });
 }

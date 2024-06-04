@@ -8,44 +8,27 @@ class _Resolver {
 
   final DeclarationPhaseIntrospector _introspector;
 
-  Future<ClassDeclaration> getRequestDeclaration() async =>
-      _resolveClass(await _getRequestIdentifier());
-  Future<Identifier> _getRequestIdentifier() =>
-      // ignore: deprecated_member_use
-      _introspector.resolveIdentifier(
-        Uri.parse('package:shelf/src/request.dart'),
-        'Request',
-      );
+  Future<ClassDeclaration> getRequestDeclaration() =>
+      resolveClass('package:shelf/src/request.dart', 'Request');
+  Future<ClassDeclaration> getResponseDeclaration() =>
+      resolveClass('package:shelf/src/response.dart', 'Response');
+  Future<ClassDeclaration> getStringDeclaration() =>
+      resolveClass('dart:core', 'String');
+  Future<ClassDeclaration> getFutureDeclaration() =>
+      resolveClass('dart:async', 'Future');
+  Future<ClassDeclaration> getJsonCodecDeclaration() =>
+      resolveClass('dart:convert', 'JsonCodec');
 
-  Future<ClassDeclaration> getResponseDeclaration() async =>
-      _resolveClass(await _getResponseIdentifier());
-  Future<Identifier> _getResponseIdentifier() =>
-      // ignore: deprecated_member_use
-      _introspector.resolveIdentifier(
-        Uri.parse('package:shelf/src/response.dart'),
-        'Response',
-      );
-
-  Future<ClassDeclaration> getStringDeclaration() async =>
-      _resolveClass(await _getStringIdentifier());
-  Future<Identifier> _getStringIdentifier() =>
-      // ignore: deprecated_member_use
-      _introspector.resolveIdentifier(
-        Uri.parse('dart:core'),
-        'String',
-      );
-
-  Future<ClassDeclaration> getFutureDeclaration() async =>
-      _resolveClass(await _getFutureIdentifier());
-  Future<Identifier> _getFutureIdentifier() =>
-      // ignore: deprecated_member_use
-      _introspector.resolveIdentifier(
-        Uri.parse('dart:async'),
-        'Future',
-      );
-
-  Future<ClassDeclaration> _resolveClass(
-    Identifier identifier,
-  ) async =>
+  Future<ClassDeclaration> resolveClass(String uri, String name) async =>
+      (await _introspector.typeDeclarationOf(await _identifierOf(uri, name)))
+          as ClassDeclaration;
+  Future<ClassDeclaration> resolveClassWith(IdentifierImpl identifier) async =>
       (await _introspector.typeDeclarationOf(identifier)) as ClassDeclaration;
+
+  Future<Identifier> _identifierOf(String uri, String name) =>
+      // ignore: deprecated_member_use
+      _introspector.resolveIdentifier(
+        Uri.parse(uri),
+        name,
+      );
 }
