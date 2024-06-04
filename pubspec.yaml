@@ -1,6 +1,6 @@
 name: shelf_router_macro
 description: Experimental Dart package that is a thin wrapper for shelf_router using macros
-version: 0.0.0-dev.6
+version: 0.0.0-dev.7
 repository: https://github.com/eEQK/shelf_router_macro
 topics: [server, shelf, macros]
 

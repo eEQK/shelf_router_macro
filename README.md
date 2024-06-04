@@ -17,36 +17,38 @@ using [macros](https://dart.dev/language/macros).
 * 🖊️  _In Progress_ Minimalistic - no need to specify `Request`/`Response`, just return response
   body
 
-## 🧑‍💻 Example
+## 🧑‍💻 Examples
 
 ```dart
 import 'package:data_class_macro/data_class_macro.dart';
 
 @Controller()
 class GreetingController {
-  @Get('/<name>')
-  Response greetingByName(Request request, String name) {
-    return Response.ok('Hello, $name!');
-  }
-
   @Get('/wave')
   Future<String> wave() async {
     await Future.delayed(const Duration(seconds: 1));
     return '_o/';
   }
 }
+```
 
-void main() async {
-  final controller = GreetingController();
-  unawaited(
-    serve(controller.router, 'localhost', 8080),
-  );
-  print('✅ Server listening on http://localhost:8080/');
+```dart
+import 'package:json/json.dart';
+import 'package:data_class_macro/data_class_macro.dart';
 
-  print('🔍 Testing...');
-  (await (await HttpClient().get('localhost', 8080, '/eeqk')).close())
-      .transform(utf8.decoder)
-      .listen(print); // Hello, eeqk!
+@JsonCodable()
+class Pong {
+  Pong({required this.uid});
+
+  final String uid;
+}
+
+@Controller()
+class PingController {
+  @Get('/ping/<uid>')
+  Future<Pong> ping(String uid) async {
+    return Pong(uid: uid);
+  }
 }
 ```
 
@@ -82,4 +84,41 @@ void main() async {
    $ dart --enable-experiment=macros run lib/main.dart
    ```
 
+## 🙌 Hands-on guide
 
+### Defining routes:
+
+All routes should be declared as part of a class annotated with `@Controller()`:
+
+```dart
+@Controller()
+class SomeController {
+  @Get('/')
+  String health() => 'ok';
+}
+```
+
+### Customizing response:
+
+Return shelf's [Response](https://pub.dev/documentation/shelf/latest/shelf/Response-class.html):
+
+```dart
+@Get('/')
+String health() => Response.ok(
+    'ok', 
+    headers: { 'X-Test': 'test' },
+  );
+```
+
+### Accessing request details:
+
+Include shelf's [Request](https://pub.dev/documentation/shelf/latest/shelf/Request-class.html) in method signature:
+
+```dart
+@Get('/')
+String test(Request r) => 'Headers: ${r.headers}';
+```
+
+===
+
+TODO: add remaining examples.I've yet to decide on the format, I have to think about it some more.
